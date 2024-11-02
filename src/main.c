@@ -1,8 +1,9 @@
+#include "../include/mongoose.h"
 #include "../include/obhnothing_includes.h"
 
 /*
  * -----------------------
- * Random stuffs..........
+ * RESTfulness in C.......
  * ***********************
  * Oskar Bahner Hansen....
  * cph-oh82@cphbusiness.dk
@@ -10,108 +11,114 @@
  * -----------------------
  */
 
-#include "../external/mlib/m-string.h"
-#include "../external/mlib/m-dict.h"
+static const char *s_http_addr = "http://0.0.0.0:8000"; // HTTP port
+static const char *s_https_addr
+    = "https://0.0.0.0:8443"; // HTTPS port
+static const char *s_root_dir = ".";
 
-// Let's define a dictionary of 'unsigned int' --> 'char
-DICT_DEF2(CharFreqMap, char, M_BASIC_OPLIST, u8, M_BASIC_OPLIST)
+// Self signed certificates, see
+// https://github.com/cesanta/mongoose/blob/master/test/certs/generate.sh
+#ifdef TLS_TWOWAY
+static const char *s_tls_ca
+    = "-----BEGIN CERTIFICATE-----\n"
+      "MIIBFTCBvAIJAMNTFtpfcq8NMAoGCCqGSM49BAMCMBMxETAPBgNVBAMMCE1vbm"
+      "dv\n"
+      "b3NlMB4XDTI0MDUwNzE0MzczNloXDTM0MDUwNTE0MzczNlowEzERMA8GA1UEAw"
+      "wI\n"
+      "TW9uZ29vc2UwWTATBgcqhkjOPQIBBggqhkjOPQMBBwNCAASuP+86T/"
+      "rOWnGpEVhl\n"
+      "fxYZ+pjMbCmDZ+"
+      "vdnP0rjoxudwRMRQCv5slRlDK7Lxue761sdvqxWr0Ma6TFGTNg\n"
+      "epsRMAoGCCqGSM49BAMCA0gAMEUCIQCwb2CxuAKm51s81S6BIoy1IcandXSohn"
+      "qs\n"
+      "us64BAA7QgIgGGtUrpkgFSS0oPBlCUG6YPHFVw42vTfpTC0ySwAS0M4=\n"
+      "-----END CERTIFICATE-----\n";
+#endif
+static const char *s_tls_cert
+    = "-----BEGIN CERTIFICATE-----\n"
+      "MIIBMTCB2aADAgECAgkAluqkgeuV/"
+      "zUwCgYIKoZIzj0EAwIwEzERMA8GA1UEAwwI\n"
+      "TW9uZ29vc2UwHhcNMjQwNTA3MTQzNzM2WhcNMzQwNTA1MTQzNzM2WjARMQ8wDQ"
+      "YD\n"
+      "VQQDDAZzZXJ2ZXIwWTATBgcqhkjOPQIBBggqhkjOPQMBBwNCAASo3oEiG+"
+      "BuTt5y\n"
+      "ZRyfwNr0C+SP+4M0RG2pYkb2v+ivbpfi72NHkmXiF/kbHXtgmSrn/"
+      "PeTqiA8M+mg\n"
+      "BhYjDX+"
+      "zoxgwFjAUBgNVHREEDTALgglsb2NhbGhvc3QwCgYIKoZIzj0EAwIDRwAw\n"
+      "RAIgTXW9MITQSwzqbNTxUUdt9DcB+8pPUTbWZpiXcA26GMYCIBiYw+"
+      "DSFMLHmkHF\n"
+      "+5U3NXW3gVCLN9ntD5DAx8LTG8sB\n"
+      "-----END CERTIFICATE-----\n";
 
-// Let's create a synonym for its oplist.
-#define M32_OPLIST DICT_OPLIST(CharFreqMap, M_BASIC_OPLIST, M_BASIC_OPLIST)
+static const char *s_tls_key
+    = "-----BEGIN EC PRIVATE KEY-----\n"
+      "MHcCAQEEIAVdo8UAScxG7jiuNY2UZESNX/"
+      "KPH8qJ0u0gOMMsAzYWoAoGCCqGSM49\n"
+      "AwEHoUQDQgAEqN6BIhvgbk7ecmUcn8Da9Avkj/uDNERtqWJG9r/"
+      "or26X4u9jR5Jl\n"
+      "4hf5Gx17YJkq5/z3k6ogPDPpoAYWIw1/sw==\n"
+      "-----END EC PRIVATE KEY-----\n";
 
-void arr_i_print(const int *arr, const int len)
+// We use the same event handler function for HTTP and HTTPS
+// connections fn_data is NULL for plain HTTP, and non-NULL for HTTPS
+static void fn(struct mg_connection *c, int ev, void *ev_data)
 {
-    int max = 0;
-    for (int i = 0; i < len; ++i)
-        if (abs(arr[i]) > max)
-            max = abs(arr[i]);
-    const int digits = (int)log10(max + 1) + 2;
-    printf("[");
-    for (int i = 0; i < len; ++i) {
-        printf("%*d", digits, arr[i]);
-        if (i < len - 1)
-            printf(",");
+    if (ev == MG_EV_ACCEPT && c->fn_data != NULL) {
+        struct mg_tls_opts opts;
+        memset(&opts, 0, sizeof(opts));
+#ifdef TLS_TWOWAY
+        opts.ca = mg_str(s_tls_ca);
+#endif
+        opts.cert = mg_str(s_tls_cert);
+        opts.key = mg_str(s_tls_key);
+        mg_tls_init(c, &opts);
     }
-    printf("]");
+    if (ev == MG_EV_HTTP_MSG) {
+        struct mg_http_message *hm
+            = (struct mg_http_message *)ev_data;
+        if (mg_match(hm->uri, mg_str("/api/stats"), NULL)) {
+            struct mg_connection *t;
+            // Print some statistics about currently established
+            // connections
+            mg_printf(c,
+                "HTTP/1.1 200 OK\r\nTransfer-Encoding: "
+                "chunked\r\n\r\n");
+            mg_http_printf_chunk(
+                c, "ID PROTO TYPE      LOCAL           REMOTE\n");
+            for (t = c->mgr->conns; t != NULL; t = t->next) {
+                mg_http_printf_chunk(c, "%-3lu %4s %s %M %M\n", t->id,
+                    t->is_udp ? "UDP" : "TCP",
+                    t->is_listening      ? "LISTENING"
+                        : t->is_accepted ? "ACCEPTED "
+                                         : "CONNECTED",
+                    mg_print_ip, &t->loc, mg_print_ip, &t->rem);
+            }
+            mg_http_printf_chunk(
+                c, ""); // Don't forget the last empty chunk
+        } else if (mg_match(hm->uri, mg_str("/api/f2/*"), NULL)) {
+            mg_http_reply(c, 200, "", "{\"result\": \"%.*s\"}\n",
+                hm->uri.len, hm->uri.buf);
+        } else {
+            struct mg_http_serve_opts opts;
+            memset(&opts, 0, sizeof(opts));
+            opts.root_dir = s_root_dir;
+            mg_http_serve_dir(c, ev_data, &opts);
+        }
+    }
 }
 
-void arr_f_print(double *arr, int len)
+int main(void)
 {
-    int max = 0;
-    for (int i = 0; i < len; ++i)
-        if (fabs(arr[i]) > max)
-            max = fabs(arr[i]);
-    int digits = (int)log10(max + 1) + 2;
-    printf("[");
-    for (int i = 0; i < len; ++i) {
-        printf("%*f", digits, arr[i]);
-        if (i < len - 1)
-            printf(",");
-    }
-    printf("]");
-}
-
-size_t duplicate_count(string_t text)
-{
-    size_t retval = 0;
-    CharFreqMap_t map;
-    CharFreqMap_init(map);
-    for (int i = 0; i < string_size(text); ++i) {
-        unsigned char c = string_get_char(text, i);
-        if (isalpha(c))
-            CharFreqMap_set_at(map, toupper(c), CharFreqMap_get(map, toupper(c)) == NULL ? 1 : *CharFreqMap_get(map, toupper(c)) + 1);
-        else
-            CharFreqMap_set_at(map, c, CharFreqMap_get(map, c) == NULL ? 1 : *CharFreqMap_get(map, c) + 1);
-    }
-    CharFreqMap_it_t it;
-    for(CharFreqMap_it(it, map); !CharFreqMap_end_p(it); CharFreqMap_next(it)) {
-        struct CharFreqMap_pair_s *item = CharFreqMap_ref(it);
-        if (item->value > 1)
-            retval++;
-    }
-    CharFreqMap_clear(map);
-    return retval;
-}
-
-int main(int argc, char **argv)
-{
-    srand(time(NULL));
-
-    string_t str;
-    string_init(str);
-    string_set_str(str, "aoeuiooeeIt");
-
-    int res = duplicate_count(str);
-
-    printf("res : %d\n", res);
-
+    struct mg_mgr mgr; // Event manager
+    mg_log_set(MG_LL_DEBUG); // Set log level
+    mg_mgr_init(&mgr); // Initialise event manager
+    mg_http_listen(
+        &mgr, s_http_addr, fn, NULL); // Create HTTP listener
+    mg_http_listen(
+        &mgr, s_https_addr, fn, (void *)1); // HTTPS listener
+    for (;;)
+        mg_mgr_poll(&mgr, 1000); // Infinite event loop
+    mg_mgr_free(&mgr);
     return 0;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

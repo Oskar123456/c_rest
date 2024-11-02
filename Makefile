@@ -31,6 +31,8 @@ OBJECTS     := $(patsubst $(SRCDIR)/%,$(BUILDDIR)/%,$(SOURCES:.$(SRCEXT)=.$(OBJE
 
 #Default Make
 all: resources $(TARGET)
+
+run: resources $(TARGET)
 	./$(TARGETDIR)/$(TARGET)
 
 #Remake
@@ -38,7 +40,7 @@ remake: cleaner all
 
 #Copy Resources from Resources Directory to Target Directory
 resources: directories
-	@cp $(RESDIR)/* $(TARGETDIR)/
+	@cp -r $(RESDIR)/* $(TARGETDIR)/
 
 #Make the Directories
 directories:
@@ -63,12 +65,12 @@ $(TARGET): $(OBJECTS)
 #Compile
 $(BUILDDIR)/%.$(OBJEXT): $(SRCDIR)/%.$(SRCEXT)
 	@mkdir -p $(dir $@)
-	$(CC) $(CFLAGS) $(INC) -c -o $@ $<
-	@$(CC) $(CFLAGS) $(INCDEP) -MM $(SRCDIR)/$*.$(SRCEXT) > $(BUILDDIR)/$*.$(DEPEXT)
-	@cp -f $(BUILDDIR)/$*.$(DEPEXT) $(BUILDDIR)/$*.$(DEPEXT).tmp
+	$(CC) $(CFLAGS) $(CFLAGS_MONGOOSE) $(CFLAGS_EXTRA) $(INC) -c -o $@ $<
+	@$(CC) $(CFLAGS) $(CFLAGS_MONGOOSE) $(CFLAGS_EXTRA) $(INCDEP) -MM $(SRCDIR)/$*.$(SRCEXT) > $(BUILDDIR)/$*.$(DEPEXT)
+	@cp -fr $(BUILDDIR)/$*.$(DEPEXT) $(BUILDDIR)/$*.$(DEPEXT).tmp
 	@sed -e 's|.*:|$(BUILDDIR)/$*.$(OBJEXT):|' < $(BUILDDIR)/$*.$(DEPEXT).tmp > $(BUILDDIR)/$*.$(DEPEXT)
 	@sed -e 's/.*://' -e 's/\\$$//' < $(BUILDDIR)/$*.$(DEPEXT).tmp | fmt -1 | sed -e 's/^ *//' -e 's/$$/:/' >> $(BUILDDIR)/$*.$(DEPEXT)
-	@rm -f $(BUILDDIR)/$*.$(DEPEXT).tmp
+	@rm -fr $(BUILDDIR)/$*.$(DEPEXT).tmp
 
 #Non-File Targets
 .PHONY: all remake clean cleaner resources
