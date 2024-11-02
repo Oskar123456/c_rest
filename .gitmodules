@@ -1,6 +1,6 @@
 [submodule "external/stb"]
 	path = external/stb
-	url = https://github.com/nothings/stb
+	url = https://github.com/nothings/stb.git
 [submodule "external/mlib"]
 	path = external/mlib
 	url = https://github.com/P-p-H-d/mlib
