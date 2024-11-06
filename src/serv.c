@@ -1,5 +1,6 @@
 #include "../include/mongoose.h"
-#include "../include/obhnothing_includes.h"
+#include "../include/incl.h"
+#include "../include/serv.h"
 
 static const char *s_http_addr = "http://0.0.0.0:8000"; // HTTP port
 static const char *s_https_addr
