@@ -1,5 +1,6 @@
 #include "../include/mongoose.h"
-#include "../include/obhnothing_includes.h"
+#include "../include/incl.h"
+#include "../include/serv.h"
 
 /*
  * -----------------------
@@ -14,13 +15,8 @@
 int main(int argc, char *argv[])
 {
 
-    const enum Event events[] = {APP_PASSIVE_OPEN, APP_SEND, RCV_SYN_ACK}; // =>  "ESTABLISHED";
+    return serve(argc, argv);
 
-    enum State res = get_TCP_state(3, events);
-
-    printf("res: %d\n", res);
-
-    return 0;
 }
 
 
