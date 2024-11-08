@@ -33,6 +33,8 @@ int serve(int argc, char **argv)
 
     mg_http_listen(&mgr, s_http_addr, ev_handler, NULL);
 
+    printf("\n\n >> Listening on (http) %s \n\n", s_http_addr);
+
     for (;;)
         mg_mgr_poll(&mgr, 1000);
 

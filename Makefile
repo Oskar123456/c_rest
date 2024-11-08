@@ -16,7 +16,7 @@ OBJEXT      := o
 
 #Flags, Libraries and Includes
 CFLAGS      := -fopenmp -Wall -g
-LIB         := -lm
+LIB         := -lm -lpq
 INC         := -I$(INCDIR)
 INCDEP      := -I$(INCDIR)
 # Mongoose build options. See https://mongoose.ws/documentation/#build-options
@@ -31,6 +31,7 @@ OBJECTS     := $(patsubst $(SRCDIR)/%,$(BUILDDIR)/%,$(SOURCES:.$(SRCEXT)=.$(OBJE
 
 #Default Make
 all: resources $(TARGET)
+	./$(TARGETDIR)/$(TARGET)
 
 run: resources $(TARGET)
 	./$(TARGETDIR)/$(TARGET)

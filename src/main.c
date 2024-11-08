@@ -1,6 +1,7 @@
 #include "../include/mongoose.h"
 #include "../include/incl.h"
 #include "../include/serv.h"
+#include "../include/db.h"
 
 /*
  * -----------------------
@@ -15,7 +16,11 @@
 int main(int argc, char *argv[])
 {
 
-    return serve(argc, argv);
+    int db_res = db_connect();
+
+    //return serve(argc, argv);
+
+    return EXIT_SUCCESS;
 
 }
 
