@@ -27,12 +27,12 @@ int db_connect()
     int         nFields;
     int         i, j;
 
-    conninfo = "host=localhost "
+    conninfo = "host=157.245.73.150 "
         "port=5432 "
         "dbname=exam_db "
         "user=postgres "
         "password=postgres "
-        "connect_timeout=10 ";
+        "connect_timeout=3 ";
 
     /* Make a connection to the database */
     conn = PQconnectdb(conninfo);
@@ -80,7 +80,7 @@ int db_connect()
     /*
      * Fetch rows from pg_database, the system catalog of databases
      */
-    res = PQexec(conn, "DECLARE myportal CURSOR FOR select * from public.trip");
+    res = PQexec(conn, "DECLARE myportal CURSOR FOR select * from public.lol");
     if (PQresultStatus(res) != PGRES_COMMAND_OK)
     {
         fprintf(stderr, "DECLARE CURSOR failed: %s", PQerrorMessage(conn));
