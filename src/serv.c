@@ -1,0 +1,44 @@
+#include "../include/mongoose.h"
+#include "../include/serv.h"
+
+/*
+ * -----------------------
+ * RESTfulness in C.......
+ * ***********************
+ * Oskar Bahner Hansen....
+ * cph-oh82@cphbusiness.dk
+ * 2024-11-08.............
+ * -----------------------
+ */
+
+static const char *s_http_addr = "http://localhost:9999"; // HTTP port
+//static const char *s_https_addr = "https://localhost:8443"; // HTTPS port
+static const char *s_root_dir = ".";
+
+void ev_handler(struct mg_connection *c, int ev, void *ev_data)
+{
+
+    if (ev == MG_EV_HTTP_MSG) {
+        struct mg_http_serve_opts serv_opts =  { .root_dir = s_root_dir };
+        mg_http_serve_dir(c, ev_data, &serv_opts);
+    }
+
+}
+
+int serve(int argc, char **argv)
+{
+
+    struct mg_mgr mgr;
+    mg_mgr_init(&mgr);
+
+    mg_http_listen(&mgr, s_http_addr, ev_handler, NULL);
+
+    printf("\n\n >> Listening on (http) %s \n\n", s_http_addr);
+
+    for (;;)
+        mg_mgr_poll(&mgr, 1000);
+
+    mg_mgr_free(&mgr);
+    return EXIT_SUCCESS;
+
+}
