@@ -1,4 +1,15 @@
-### obh C project template <br/>
+# RESTful Application Programming in C
 ___
 
-my quick C project template with useful libraries & preconfigured CMakeLists.txt
+## Libs
+___
+
+### Mongoose
+___
+
+  - https://mongoose.ws
+
+### libql (*postgres* client library)
+___
+
+  - https://github.com/postgres/postgres
