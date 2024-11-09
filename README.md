@@ -4,12 +4,9 @@ ___
 ## Libs
 ___
 
-### Mongoose
-___
+  - **Mongoose**
+    + https://mongoose.ws
 
-  - https://mongoose.ws
-
-### libql (*postgres* client library)
-___
-
-  - https://github.com/postgres/postgres
+  - **libql**
+    + (*postgres* client library)
+    + https://github.com/postgres/postgres
