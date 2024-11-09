@@ -1,5 +1,6 @@
 #include "../include/mongoose.h"
 #include "../include/serv.h"
+#include "../include/c_log.h"
 
 /*
  * -----------------------
@@ -33,7 +34,7 @@ int serve(int argc, char **argv)
 
     mg_http_listen(&mgr, s_http_addr, ev_handler, NULL);
 
-    printf("\n\n >> Listening on (http) %s \n\n", s_http_addr);
+    c_log_info("serve", "Listening on (http) %s", s_http_addr);
 
     for (;;)
         mg_mgr_poll(&mgr, 1000);

@@ -10,6 +10,7 @@
  * */
 #include <math.h>
 #include <time.h>
+#include <sys/time.h>
 #include <inttypes.h>
 #include <limits.h>
 #include <stddef.h>
@@ -19,6 +20,7 @@
 #include <string.h>
 #include <ctype.h>
 #include <stdbool.h>
+#include <stdarg.h>
 #include <wchar.h>
 /*
  * linux
@@ -37,20 +39,10 @@
 /*
  * external
  * */
-//#ifndef STB_DS_IMPLEMENTATION
-//#define STB_DS_IMPLEMENTATION
-//#include "../external/stb/stb_ds.h"
-//#endif
 
-//#include "../external/sds/sds.h"
-//#include "../external/sds/sdsalloc.h"
+#include "../external/mlib/m-string.h"
+#include "../external/mlib/m-bstring.h"
 
-/*
- * math
- * */
-// #define GLM_FORCE_RADIANS
-// #define GLM_FORCE_DEPTH_ZERO_TO_ONE
-// #include "../external/cglm/include/cglm/cglm.h"
 /*
  * defines
  * */

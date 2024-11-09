@@ -16,7 +16,7 @@ OBJEXT      := o
 
 #Flags, Libraries and Includes
 CFLAGS      := -fopenmp -Wall -g
-LIB         := -lm -lpq
+LIB         := -lm -lpq -lcurl
 INC         := -I$(INCDIR)
 INCDEP      := -I$(INCDIR)
 # Mongoose build options. See https://mongoose.ws/documentation/#build-options

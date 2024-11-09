@@ -2,6 +2,8 @@
 #include "../include/incl.h"
 #include "../include/serv.h"
 #include "../include/db.h"
+#include "../include/c_log.h"
+#include "../include/scrape.h"
 
 #include <postgresql/libpq-fe.h>
 
@@ -17,16 +19,18 @@
 
 int main(int argc, char *argv[])
 {
+    c_log_init(stderr);
 
     PGconn* db_connection = db_connect();
     db_print_table(db_connection, "trip");
     db_print_table(db_connection, "guide");
     PQfinish(db_connection);
 
-    int exit_code = serve(argc, argv);
+    get_headlines_ISO3166_2("us");
+
+    int exit_code = 0; // serve(argc, argv);
 
     return exit_code;
-
 }
 
 

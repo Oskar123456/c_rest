@@ -1,6 +1,6 @@
 #include "../include/incl.h"
 #include "../include/db.h"
-#include "../external/mlib/m-string.h"
+#include "../include/c_log.h"
 
 #include <postgresql/libpq-fe.h>
 
@@ -25,6 +25,7 @@ static const char *conninfo = "host=localhost "
 static void exit_nicely(PGconn *conn)
 {
     PQfinish(conn);
+    c_log_info("exit_nicely", "exiting nicely");
     exit(1);
 }
 
@@ -38,7 +39,7 @@ PGconn* db_connect()
     /* Check to see that the backend connection was successfully made */
     if (PQstatus(conn) != CONNECTION_OK)
     {
-        fprintf(stderr, "%s", PQerrorMessage(conn));
+        c_log_error("db_connect", PQerrorMessage(conn));
         exit_nicely(conn);
     }
 
@@ -58,6 +59,7 @@ void db_print_table(PGconn* conn, const char* table)
     res = PQexec(conn, "SELECT pg_catalog.set_config('search_path', '', false)");
     if (PQresultStatus(res) != PGRES_TUPLES_OK)
     {
+        c_log_error("db_connect", PQerrorMessage(conn));
         fprintf(stderr, "SET failed: %s", PQerrorMessage(conn));
         PQclear(res);
         exit_nicely(conn);
