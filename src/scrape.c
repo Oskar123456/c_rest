@@ -80,15 +80,11 @@ TUPLE_DEF2(packinglist,
         (items, array_packingitem_t))
 #define M_OPL_packinglist_t() TUPLE_OPLIST(packinglist, \
         M_OPL_array_packingitem_t())
-/*
- */
 
 /*
  * VARIABLE DECLARATIONS
  * -----------------------
  */
-
-static const char* NEWS_API_KEY = "1d827a953b344080b5cf5c425e49669c";
 
 /*
  * API
@@ -170,7 +166,7 @@ news_api_results_t* results_from_json(string_t json)
     return res;
 }
 
-static size_t rec_http(char *data, size_t size, size_t nmemb, void *clientp)
+static size_t rec_http_header(char *data, size_t size, size_t nmemb, void *clientp)
 {
     string_t http_data;
     string_init(http_data);
@@ -184,6 +180,16 @@ static size_t rec_http(char *data, size_t size, size_t nmemb, void *clientp)
     return len_curr - len_prev;
 }
 
+static size_t rec_http_body(char *data, size_t size, size_t nmemb, void *clientp)
+{
+    bstring_t *rec_data = (bstring_t*)data;
+    bstring_t *cur_data = (bstring_t*)clientp;
+    int len_prev = bstring_size(*cur_data);
+    bstring_push_back_bytes(*cur_data, nmemb, *rec_data);
+    int len_curr = bstring_size(*cur_data);
+    return len_curr - len_prev;
+}
+
 void get_headlines_ISO3166_2(const char* ISO3166_2)
 {
     char curl_error_buffer[CURL_ERROR_SIZE] = { 0 };
@@ -192,7 +198,7 @@ void get_headlines_ISO3166_2(const char* ISO3166_2)
     string_t url;
     string_init(url);
     string_printf(url, "https://newsapi.org/v2/top-headlines?country=%s&apiKey=%s",
-            ISO3166_2, NEWS_API_KEY);
+            ISO3166_2, getenv("NEWS_API_KEY"));
     c_log_info("get_headlines_ISO3166_2 url:", string_get_cstr(url));
 
     CURL* curl = curl_easy_init();
@@ -202,7 +208,7 @@ void get_headlines_ISO3166_2(const char* ISO3166_2)
     curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, curl_error_buffer);
     curl_easy_setopt(curl, CURLOPT_USERAGENT, "Mozilla/5.0");
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void*) &response_buffer);
-    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, rec_http);
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, rec_http_body);
 
     if ((response_code = curl_easy_perform(curl))) {
         c_log_error("get_headlines_ISO3166_2", curl_error_buffer);
@@ -240,7 +246,7 @@ void get_packinglist(const char* category)
     curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, curl_error_buffer);
     curl_easy_setopt(curl, CURLOPT_USERAGENT, "Mozilla/5.0");
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void*) &response_buffer);
-    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, rec_http);
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, rec_http_body);
 
     if ((response_code = curl_easy_perform(curl))) {
         c_log_error("get_packinglist", curl_error_buffer);
@@ -261,11 +267,112 @@ void get_packinglist(const char* category)
     curl_easy_cleanup(curl);
 }
 
+TUPLE_DEF2(location_info,
+        (name, string_t),
+        (region, string_t),
+        (country, string_t),
+        (tz_id, string_t),
+        (localtime_epoch, u64),
+        (localtime, string_t),
+        (lon, double),
+        (lat, double))
+#define M_OPL_location_info_t() TUPLE_OPLIST(location_info, \
+        STRING_OPLIST, STRING_OPLIST, STRING_OPLIST, STRING_OPLIST, \
+        M_BASIC_OPLIST, STRING_OPLIST, M_BASIC_OPLIST, M_BASIC_OPLIST)
+
+TUPLE_DEF2(weather_info,
+        (temp_c, double),
+        (temp_f, double))
+#define M_OPL_weather_info_t() TUPLE_OPLIST(weather_info, \
+        M_BASIC_OPLIST, M_BASIC_OPLIST)
+
+TUPLE_DEF2(weather_report,
+        (location, location_info_t),
+        (current, weather_info_t))
+#define M_OPL_weather_report_t() TUPLE_OPLIST(weather_report, \
+        M_OPL_weather_info_t(), M_OPL_location_info_t())
+
+/*
+{
+    "location": {
+        "name": "London",
+        "region": "City of London, Greater London",
+        "country": "United Kingdom",
+        "lat": 51.5171,
+        "lon": -0.1062,
+        "tz_id": "Europe/London",
+        "localtime_epoch": 1731260940,
+        "localtime": "2024-11-10 17:49"
+    },
+    "current": {
+        "last_updated_epoch": 1731260700,
+        "last_updated": "2024-11-10 17:45",
+        "temp_c": 10.4,
+        "temp_f": 50.7,
+        "is_day": 0,
+        "condition": {
+            "text": "Fog",
+            "icon": "//cdn.weatherapi.com/weather/64x64/night/248.png",
+            "code": 1135
+        },
+        "wind_mph": 5.1,
+        "wind_kph": 8.3,
+        "wind_degree": 243,
+        "wind_dir": "WSW",
+        "pressure_mb": 1029.0,
+        "pressure_in": 30.39,
+        "precip_mm": 0.0,
+        "precip_in": 0.0,
+        "humidity": 94,
+        "cloud": 50,
+        "feelslike_c": 9.4,
+        "feelslike_f": 49.0,
+        "windchill_c": 9.7,
+        "windchill_f": 49.5,
+        "heatindex_c": 10.7,
+        "heatindex_f": 51.2,
+        "dewpoint_c": 8.1,
+        "dewpoint_f": 46.5,
+        "vis_km": 6.0,
+        "vis_miles": 3.0,
+        "uv": 0.0,
+        "gust_mph": 8.0,
+        "gust_kph": 12.9
+    }
+}
+ */
+
+weather_report_t* results_from_json_weather_report(bstring_t json)
+{
+    weather_report_t *res = malloc(sizeof(weather_report_t));
+    weather_report_init(*res);
+
+    m_serial_str_json_read_t stream;
+    m_serial_str_json_read_init(stream, (char*) bstring_view(json, 0, bstring_size(json)));
+
+    int status = weather_report_in_serial(*res, stream);
+
+    if (status != M_SERIAL_OK_DONE) {
+        c_log_error("results_from_json", "decoding failed: %d", status);
+        return NULL;
+    }
+
+    FILE *output_file = fopen("out/weather_report.json", "w+");
+    m_serial_json_write_t outstream;
+    m_serial_json_write_init(outstream, output_file);
+    status = weather_report_out_serial(outstream, *res);
+
+    m_serial_str_json_read_clear(stream);
+    return res;
+}
+
 void get_weather(const char* city)
 {
     char curl_error_buffer[CURL_ERROR_SIZE] = { 0 };
-    string_t response_buffer, url;
-    string_init(response_buffer); string_init(url);
+    bstring_t res_body, res_header;
+    bstring_init(res_body); bstring_init(res_header);
+    string_t url;
+    string_init(url);
     string_printf(url, "http://api.weatherapi.com/v1/current.json?key=%s&q=%s&aqi=no",
             getenv("WEATHER_API_KEY"), city);
     c_log_info("get_weather url:", string_get_cstr(url));
@@ -273,27 +380,34 @@ void get_weather(const char* city)
     CURL* curl = curl_easy_init();
     CURLcode response_code;
 
-    curl_easy_setopt(curl, CURLOPT_URL, string_get_cstr(url));
-    curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, curl_error_buffer);
-    curl_easy_setopt(curl, CURLOPT_USERAGENT, "Mozilla/5.0");
-    curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void*) &response_buffer);
-    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, rec_http);
+    struct curl_slist *headers = NULL;
+    headers = curl_slist_append(headers, "Accept: application/json");
+    headers = curl_slist_append(headers, "User-Agent: Mozilla/5.0");
 
-    if ((response_code = curl_easy_perform(curl))) {
+    curl_easy_setopt(curl, CURLOPT_URL, string_get_cstr(url));
+    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+    curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, curl_error_buffer);
+    curl_easy_setopt(curl, CURLOPT_HEADERDATA, (void*) &res_header);
+    curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, rec_http_header);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void*) &res_body);
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, rec_http_body);
+
+    if ((response_code = curl_easy_perform(curl)))
         c_log_error("get_weather", curl_error_buffer);
-    }
+    curl_slist_free_all(headers);
 
     FILE *output_file = fopen("out/http_resp_weather.json", "w+");
     if (output_file != NULL) {
-        string_out_str(output_file, response_buffer);
-        c_log_info("get_weather", "wrote %d bytes to file",
-                string_size(response_buffer));
+        bstring_fwrite(output_file, res_body);
+        c_log_info("get_weather body", (char*) bstring_view(res_body, 0, bstring_size(res_body)));
+        c_log_info("get_weather header", (char*) bstring_view(res_body, 0, bstring_size(res_header)));
     }
     else
         c_log_error("get_weather", "fopen failed");
 
-    packinglist_t *pl = results_from_json_packinglist(response_buffer);
+    weather_report_t *pl = results_from_json_weather_report(res_body);
 
-    string_clear(response_buffer);
+    bstring_clear(res_header);
+    bstring_clear(res_body);
     curl_easy_cleanup(curl);
 }
