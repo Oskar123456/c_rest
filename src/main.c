@@ -28,7 +28,7 @@ int main(int argc, char *argv[])
 
     //get_packinglist("beach");
     //get_headlines_ISO3166_2("us");
-    get_weather("London");
+    weather_report_t *wr = get_weather("London");
 
     int exit_code = 0; // serve(argc, argv);
 
