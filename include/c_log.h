@@ -3,13 +3,7 @@
 
 #include "incl.h"
 
-typedef enum LOG_LEVEL {
-    LOG_LEVEL_DEBUG,
-    LOG_LEVEL_SUCCESS,
-    LOG_LEVEL_INFO,
-    LOG_LEVEL_WARNING,
-    LOG_LEVEL_ERROR,
-} LOG_LEVEL;
+typedef enum LOG_LEVEL { LOG_LEVEL_DEBUG, LOG_LEVEL_SUCCESS, LOG_LEVEL_INFO, LOG_LEVEL_WARNING, LOG_LEVEL_ERROR, } LOG_LEVEL;
 
 /**
  * initialize c_log, must be called before use
@@ -17,9 +11,6 @@ typedef enum LOG_LEVEL {
  * @param level anything below this threshold will be ignored
  * */
 void c_log_init(FILE *out, LOG_LEVEL level);
-/**
- * log success
- * */
 void c_log_success(const char* tag, const char* message, ...);
 void c_log_debug(const char* tag, const char* message, ...);
 void c_log_info(const char* tag, const char* message, ...);
