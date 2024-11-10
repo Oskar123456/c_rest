@@ -14,5 +14,7 @@
  */
 
 void get_headlines_ISO3166_2(const char* ISO3166_2);
+void get_packinglist(const char* category);
+void get_weather(const char* city);
 
 

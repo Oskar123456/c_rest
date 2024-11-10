@@ -19,14 +19,16 @@
 
 int main(int argc, char *argv[])
 {
-    c_log_init(stderr);
+    c_log_init(stderr, LOG_LEVEL_SUCCESS);
 
     PGconn* db_connection = db_connect();
     db_print_table(db_connection, "trip");
     db_print_table(db_connection, "guide");
     PQfinish(db_connection);
 
-    get_headlines_ISO3166_2("us");
+    //get_packinglist("beach");
+    //get_headlines_ISO3166_2("us");
+    get_weather("London");
 
     int exit_code = 0; // serve(argc, argv);
 

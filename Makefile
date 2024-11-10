@@ -1,3 +1,5 @@
+# Environment
+ENV_FILES    = .env
 #Compiler and Linker
 CC          := gcc
 
@@ -28,6 +30,9 @@ CFLAGS_EXTRA    ?= -DMG_TLS=MG_TLS_BUILTIN
 #---------------------------------------------------------------------------------
 SOURCES     := $(shell find $(SRCDIR) -type f -name *.$(SRCEXT))
 OBJECTS     := $(patsubst $(SRCDIR)/%,$(BUILDDIR)/%,$(SOURCES:.$(SRCEXT)=.$(OBJEXT)))
+
+include $(ENV_FILES)
+export
 
 #Default Make
 all: resources $(TARGET)

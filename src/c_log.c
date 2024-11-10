@@ -34,20 +34,24 @@ typedef enum ANSI_COLOR {
     ANSI_BLUE,
 } ANSI_COLOR;
 
-typedef enum LOG_LEVEL {
-    LOG_LEVEL_DEBUG,
-    LOG_LEVEL_SUCCESS,
-    LOG_LEVEL_INFO,
-    LOG_LEVEL_WARNING,
-    LOG_LEVEL_ERROR,
-} LOG_LEVEL;
+/*
+ * VAR DECLS
+ */
 
 static FILE *output_file;
+static int   global_log_level;
 
-void c_log_init(FILE *out) { output_file = out; }
+/*
+ * API
+ */
+
+void c_log_init(FILE *out, LOG_LEVEL log_level) { output_file = out; global_log_level = log_level; }
 
 void c_log(const char* tag, LOG_LEVEL level, const char* message, va_list args)
 {
+    if (level < global_log_level)
+        return;
+
     char buffer[32] = { 0 };
     int millisec;
     struct tm* tm_info;
