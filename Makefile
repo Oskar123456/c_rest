@@ -36,7 +36,6 @@ export
 
 #Default Make
 all: resources $(TARGET)
-	./$(TARGETDIR)/$(TARGET)
 
 run: resources $(TARGET)
 	./$(TARGETDIR)/$(TARGET)
