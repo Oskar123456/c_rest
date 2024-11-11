@@ -48,7 +48,8 @@ CREATE TABLE IF NOT EXISTS public.location_info (
     lon                double precision,
     lat                double precision,
     /* constraints */
-    PRIMARY KEY (id)
+    PRIMARY KEY (id),
+    UNIQUE (lon, lat)
 );
 
 CREATE TABLE IF NOT EXISTS public.weather_condition (

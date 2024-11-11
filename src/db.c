@@ -16,9 +16,9 @@ void custom_pq_notice_processor (void *arg, const char *message)
 {
     (void)arg;
     char *message_no_newline = strdup(message);
-    if (strlen(message) > 1)
-        message_no_newline[strlen(message) - 2] = 0;
-    c_log_info("from postgres server", message_no_newline);
+    if (strlen(message) > 0)
+        message_no_newline[strlen(message) - 1] = 0;
+    c_log_warn("from postgres server", message_no_newline);
     free(message_no_newline);
 }
 

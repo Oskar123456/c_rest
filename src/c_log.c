@@ -69,7 +69,8 @@ void c_log(const char* tag, LOG_LEVEL level, const char* message, va_list args)
 
     strftime(buffer, 26, "%H:%M:%S", tm_info);
     fprintf(output_file, "%s", ansi_color_arr[level]);
-    fprintf(output_file, "[%s] [%s.%03d] ", log_level_translations[level], buffer, millisec);
+    fprintf(output_file, "[%s]%*s[%s.%03d] ", log_level_translations[level],
+            max(7 - strlen(log_level_translations[level]), 0) + 1, " ", buffer, millisec);
     fprintf(output_file, "[%s]: ", tag);
     fprintf(output_file, "%s", ansi_color_arr[0]);
     vfprintf(output_file, message, args);
