@@ -20,5 +20,6 @@
 void get_headlines_ISO3166_2(const char* ISO3166_2);
 void get_packinglist(const char* category);
 weather_report_t* get_weather(const char* city);
+bool get_weather_str(bstring_t dest, const char* city);
 
 

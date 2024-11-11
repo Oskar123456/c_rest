@@ -20,9 +20,11 @@ static size_t rec_http_header(char *data, size_t size, size_t nmemb, void *clien
 {
     bstring_t *rec_data = (bstring_t*)data;
     bstring_t *cur_data = (bstring_t*)clientp;
+    c_log_debug(__FILE__, "[l:%d] clientp size before: %d", __LINE__, bstring_size(*cur_data));
     int len_prev = bstring_size(*cur_data);
     bstring_push_back_bytes(*cur_data, nmemb, *rec_data);
     int len_curr = bstring_size(*cur_data);
+    c_log_debug(__FILE__, "[l:%d] clientp size after: %d", __LINE__, bstring_size(*cur_data));
     return len_curr - len_prev;
 }
 
@@ -50,11 +52,6 @@ weather_report_t* results_from_json_weather_report(bstring_t json)
         c_log_error("results_from_json", "decoding failed: %d", status);
         return NULL;
     }
-
-    //FILE *output_file = fopen("out/weather_report.json", "w+");
-    //m_serial_json_write_t outstream;
-    //m_serial_json_write_init(outstream, output_file);
-    //status = weather_report_out_serial(outstream, *res);
 
     m_serial_str_json_read_clear(stream);
     return res;
@@ -111,4 +108,48 @@ weather_report_t* get_weather(const char* city)
     curl_easy_cleanup(curl);
 
     return wr;
+}
+
+bool get_weather_str(bstring_t dest, const char* city)
+{
+    char curl_error_buffer[CURL_ERROR_SIZE] = { 0 };
+    bstring_t res_body, res_header;
+    bstring_init(res_body); bstring_init(res_header);
+    string_t url;
+    string_init(url);
+    string_printf(url, "http://api.weatherapi.com/v1/current.json?key=%s&q=%s&aqi=no",
+            getenv("WEATHER_API_KEY"), city);
+    c_log_info("get_weather url:", string_get_cstr(url));
+
+    CURL* curl = curl_easy_init();
+    CURLcode response_code;
+
+    struct curl_slist *headers = NULL;
+    headers = curl_slist_append(headers, "Accept: application/json");
+    headers = curl_slist_append(headers, "User-Agent: Mozilla/5.0");
+
+    curl_easy_setopt(curl, CURLOPT_URL, string_get_cstr(url));
+    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+    curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, curl_error_buffer);
+    curl_easy_setopt(curl, CURLOPT_HEADERDATA, (void*) &res_header);
+    curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, rec_http_header);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void*) &res_body);
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, rec_http_body);
+
+    if ((response_code = curl_easy_perform(curl))) {
+        c_log_error(__FILE__, "[l:%d] %s", __LINE__, curl_error_buffer);
+        return false;
+    }
+    curl_slist_free_all(headers);
+
+    //weather_report_t *wr = results_from_json_weather_report(dest);
+
+    bstring_set(dest, res_body);
+
+    bstring_clear(res_header);
+    bstring_clear(res_body);
+    curl_easy_cleanup(curl);
+
+    c_log_success(__FILE__, "[l:%d] received %d bytes", __LINE__, bstring_size(dest));
+    return true;
 }

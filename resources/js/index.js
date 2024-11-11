@@ -1,89 +1,51 @@
 const display_div = document.querySelector("#display_div");
 const display_list = document.querySelector("#display_list");
+const display_clock = document.querySelector("#display_clock");
 
-function searchHotels(needle)
-{
-    let url = "/api/hotel/search?needle=";
-    if (typeof needle !== 'undefined')
-        url += needle;   
-    
-    fetch(url)
-        .then((response) => { if (!response.ok) {
-                throw new Error(`HTTP error: ${response.status}`); }
-            return response.json();
-        }).then((json) => {
-            for (let i = 0, len = json.length; i < len; i++) {
-                let e = document.createElement("li");
-                let a = document.createElement("a");
-                
-                let d = document.createElement("button");
-                d.type = "button";
-                d.innerHTML = "delete";
-                d.param1 = json[i].id;
-                d.addEventListener("click", deleteHotel.bind(d));
-                
-                a.setAttribute("href", "/api/hotel?id=" + json[i].id);
-                a.innerHTML = json[i].name + " hotel";
-                e.appendChild(a);
-                e.appendChild(d);
-                display_list.appendChild(e);
-            }
-        })
-        .catch((error) => {
-            display_list.textContent = `Could not fetch verse: ${error}`;
-        });
+const search_form = document.querySelector("#search_form");
+search_form.addEventListener("click", sendData);
 
+function startTime() {
+    const today = new Date();
+    let h = today.getHours();
+    let m = today.getMinutes();
+    let s = today.getSeconds();
+    m = checkTime(m);
+    s = checkTime(s);
+    display_clock.innerHTML =  h + ":" + m + ":" + s;
+    setTimeout(startTime, 1000);
 }
 
-function deleteHotel(e)
-{
-    let url = "/api/hotel?id=";
-    if (typeof e.currentTarget.param1 !== 'undefined')
-        url += e.currentTarget.param1;
-    
-    fetch(url, {method: "DELETE"})
-        .then((response) => { 
-            
-            if (!response.ok) {
-                throw new Error(`HTTP error: ${response.status}`); 
-            }
-
-            while (display_list.firstChild) {
-                display_list.removeChild(display_list.lastChild);
-            }
-            
-            searchHotels("");
-            
-            return response.json();})
-    
-        .catch((error) => {
-            return `Could not fetch verse: ${error}`;
-        });
+function checkTime(i) {
+    if (i < 10) {i = "0" + i};  // add zero in front of numbers < 10
+    return i;
 }
 
+async function sendData() {
+    // Associate the FormData object with the form element
+    const formData = new FormData(search_form);
+    const city = formData.get("id")
 
+    if (city.length < 2) {
+        return;
+    }
 
+    try {
+        const response = await fetch("/api/weather?city=" + city, {
+            method: "GET",
+            // Set the FormData instance as the request body
+            //body: formData,
+        });
+        const weather_report = await response.json();
+    }
+    
+    catch (e) {
+        console.error(e);
+    }
+}
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+// Take over form submission
+search_form.addEventListener("submit", (event) => {
+    event.preventDefault();
+    sendData();
+});

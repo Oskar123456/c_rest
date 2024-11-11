@@ -9,7 +9,7 @@ body {
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    row-gap: 30px;
+    row-gap: 20px;
     width: 800px;
     background-color: #262626;
 }
@@ -22,6 +22,7 @@ nav {
     border: 1px solid #aeaeae;
     background-color: #464646;
     padding: 10px;
+    margin-top: 10px;
 }
 
 nav a {
@@ -74,7 +75,7 @@ nav input[type="text"], textarea, button {
     padding: 10px;
 }
 
-#display_div {
+#main_content {
     display: flex;   
     flex-direction: column;
     width: 800px;
@@ -85,7 +86,7 @@ nav input[type="text"], textarea, button {
     color: #bababa;
 }
 
-#display_div ul {
+#main_content ul {
     list-style: none;
     display: flex;   
     flex-direction: column;
@@ -94,7 +95,7 @@ nav input[type="text"], textarea, button {
     padding: 10px;
 }
 
-#display_div ul li {
+#main_content ul li {
     display: flex;   
     column-gap: 10px;
     justify-content: space-between;
@@ -102,7 +103,7 @@ nav input[type="text"], textarea, button {
     border: 1px solid #aeaeae;
 }
 
-#display_div ul li a, a:visited {
+#main_content ul li a, a:visited {
     color: #bababa;
     text-decoration: none;
 }
