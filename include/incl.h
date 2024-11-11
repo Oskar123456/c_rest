@@ -22,6 +22,7 @@
 #include <stdbool.h>
 #include <stdarg.h>
 #include <wchar.h>
+#include <errno.h>
 /*
  * linux
  * */
