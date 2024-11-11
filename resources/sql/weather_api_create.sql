@@ -111,7 +111,6 @@ CREATE TABLE IF NOT EXISTS public.weather_report (
     /* own fields */
     /* constraints */
     PRIMARY KEY (id),
-    FOREIGN KEY (location_info_id) REFERENCES location_info (id),
-    FOREIGN KEY (weather_info_id) REFERENCES weather_info (id)
+    FOREIGN KEY (location_info_id) REFERENCES public.location_info (id),
+    FOREIGN KEY (weather_info_id) REFERENCES public.weather_info (id)
 );
-

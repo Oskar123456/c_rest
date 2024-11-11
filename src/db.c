@@ -15,7 +15,11 @@
 void custom_pq_notice_processor (void *arg, const char *message)
 {
     (void)arg;
-    c_log_info("from postgres server", message);
+    char *message_no_newline = strdup(message);
+    if (strlen(message) > 1)
+        message_no_newline[strlen(message) - 2] = 0;
+    c_log_info("from postgres server", message_no_newline);
+    free(message_no_newline);
 }
 
 static void exit_nicely(PGconn *conn, PGresult *res)

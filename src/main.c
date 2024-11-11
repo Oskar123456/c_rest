@@ -32,7 +32,7 @@ int main(int argc, char *argv[])
 
     PGconn* db_connection = db_connect();
 
-    bool sql_script_res = db_exec_script(db_connection, "resources/sql/weather_api_create_utf.sql");
+    bool sql_script_res = db_exec_script(db_connection, "resources/sql/weather_api_create.sql");
 
     //db_print_table(db_connection, "trip");
     //db_print_table(db_connection, "guide");
