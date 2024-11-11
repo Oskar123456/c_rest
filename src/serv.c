@@ -14,7 +14,7 @@
 
 static const char *s_http_addr = "http://localhost:9999"; // HTTP port
 //static const char *s_https_addr = "https://localhost:8443"; // HTTPS port
-static const char *s_root_dir = ".";
+static const char *s_root_dir = "./resources";
 
 void ev_handler(struct mg_connection *c, int ev, void *ev_data)
 {

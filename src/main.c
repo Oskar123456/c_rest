@@ -33,10 +33,12 @@ int main(int argc, char *argv[])
     task_new(my_task, "wash dishes", "quick 2");
     task_create(db_connection, my_task);
     bool res = task_get_by_id(db_connection, my_task, 1);
-
-    int exit_code = 0; // serve(argc, argv);
-
     db_print_table(db_connection, "task");
+
+    /*
+     * START SERVER
+     */
+    int exit_code = serve(argc, argv);
 
     PQfinish(db_connection);
     return exit_code;
