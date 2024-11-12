@@ -99,7 +99,8 @@ function update_main_content(json)
 
     const weather_info = json.current;
 
-    const tr_name = table_elm.insertRow();
+    const th_name = table_elm.createTHead();
+    const tr_name = th_name.insertRow();
     const td_name_0 = tr_name.insertCell();
     const td_name_1 = tr_name.insertCell();
     td_name_0.appendChild(document.createTextNode(`City`));

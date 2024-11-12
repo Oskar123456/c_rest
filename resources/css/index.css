@@ -108,6 +108,16 @@ nav input[type="text"], textarea, button {
     text-decoration: none;
 }
 
+#main_content table {
+    padding: 10px;
+    color: white;
+}
+
+#main_content th {
+    font-size: 2rem;
+    color: yellow;
+}
+
 #display_list {
 }
 
