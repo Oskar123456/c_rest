@@ -18,7 +18,7 @@ void custom_pq_notice_processor (void *arg, const char *message)
     char *message_no_newline = strdup(message);
     if (strlen(message) > 0)
         message_no_newline[strlen(message) - 1] = 0;
-    c_log_warn("from postgres server", message_no_newline);
+    c_log_warn("from postgres server", -1, message_no_newline);
     free(message_no_newline);
 }
 
@@ -27,7 +27,7 @@ static void exit_nicely(PGconn *conn, PGresult *res)
     if (res)
         PQclear(res);
     PQfinish(conn);
-    c_log_info("exit_nicely", "exiting nicely");
+    c_log_info("exit_nicely", -1, "exiting nicely");
     exit(1);
 }
 
@@ -46,11 +46,19 @@ PGconn* db_connect()
     /* Check to see that the backend connection was successfully made */
     if (PQstatus(conn) != CONNECTION_OK)
     {
-        c_log_error("db_connect", PQerrorMessage(conn));
+        c_log_error(LOG_TAG, "%s", PQerrorMessage(conn));
         exit_nicely(conn, NULL);
     }
 
     PQsetNoticeProcessor(conn, custom_pq_notice_processor, NULL);
+
+    /* Set always-secure search path, so malicious users can't take control. */
+    PGresult *res = PQexec(conn, "SELECT pg_catalog.set_config('search_path', '', false)");
+    if (PQresultStatus(res) != PGRES_TUPLES_OK)
+    {
+        c_log_error(LOG_TAG, "%s", PQerrorMessage(conn));
+    }
+    PQclear(res);
 
     /* first, print out the attribute names */
     string_clear(conn_str);
@@ -69,8 +77,7 @@ void db_print_table(PGconn* conn, const char* table_name)
     res = PQexec(conn, "SELECT pg_catalog.set_config('search_path', '', false)");
     if (PQresultStatus(res) != PGRES_TUPLES_OK)
     {
-        c_log_error("db_connect", PQerrorMessage(conn));
-        fprintf(stderr, "SET failed: %s", PQerrorMessage(conn));
+        c_log_error(LOG_TAG, "%s", PQerrorMessage(conn));
         exit_nicely(conn, res);
     }
     PQclear(res);
@@ -78,7 +85,7 @@ void db_print_table(PGconn* conn, const char* table_name)
     res = PQexec(conn, string_get_cstr(stmt));
     if (PQresultStatus(res) != PGRES_TUPLES_OK)
     {
-        fprintf(stderr, "FETCH ALL failed: %s", PQerrorMessage(conn));
+        c_log_error(LOG_TAG, "%s", PQerrorMessage(conn));
         exit_nicely(conn, res);
     }
 
@@ -93,9 +100,51 @@ void db_print_table(PGconn* conn, const char* table_name)
     PQclear(res);
 }
 
+bool db_print_schema_stats(PGconn* conn)
+{
+    bool      exit_code;
+    string_t  stmt;
+    PGresult *res;
+
+    FILE *stmt_file = fopen("resources/sql/gen_stats_overview.sql", "r");
+    if (!stmt_file)
+    {
+        c_log_error(LOG_TAG, "%s", strerror(errno));
+        goto FAIL;
+    }
+
+    string_init(stmt);
+    m_string_fgets(stmt, stmt_file, STRING_READ_FILE);
+    res = PQexec(conn, string_get_cstr(stmt));
+    if (PQresultStatus(res) == PGRES_FATAL_ERROR || PQresultStatus(res) == PGRES_NONFATAL_ERROR)
+    {
+        c_log_error(LOG_TAG, "%s", PQerrorMessage(conn));
+        goto FAIL;
+    }
+
+    /* better print option */
+    PQprintOpt pq_printopts = { 0 };
+    pq_printopts.header = true;
+    pq_printopts.align = true;
+    pq_printopts.fieldSep = "|";
+    PQprint(stdout, res, &pq_printopts);
+
+SUCCESS:
+    exit_code = true;
+    goto CLEAN;
+FAIL:
+    exit_code = false;
+    goto CLEAN;
+CLEAN:
+    fclose(stmt_file);
+    string_clear(stmt);
+    PQclear(res);
+    return exit_code;
+}
+
 bool db_exec_script(PGconn* conn, const char* path)
 {
-    c_log_info("db_exec_script", "source: %s", path);
+    c_log_info(LOG_TAG, "source: %s", path);
 
     PGresult *res = NULL;
     bstring_t stmt; bstring_init(stmt);
@@ -104,7 +153,7 @@ bool db_exec_script(PGconn* conn, const char* path)
     FILE *sql_file = fopen(path, "r");
     if (sql_file == NULL)
     {
-        c_log_error("db_exec_script open file", strerror(errno));
+        c_log_error(LOG_TAG, "%s", strerror(errno));
         goto FAIL;
     }
     fseek(sql_file, 0, SEEK_END);
@@ -115,24 +164,15 @@ bool db_exec_script(PGconn* conn, const char* path)
     fclose(sql_file);
     if (!exit_code)
     {
-        c_log_error("db_exec_script read file", strerror(errno));
+        c_log_error(LOG_TAG, "%s", strerror(errno));
         exit_code = false;
         goto FAIL;
     }
 
-    /* Set always-secure search path, so malicious users can't take control. */
-    res = PQexec(conn, "SELECT pg_catalog.set_config('search_path', '', false)");
-    if (PQresultStatus(res) != PGRES_TUPLES_OK)
-    {
-        c_log_error("db_exec_script set search_path", PQerrorMessage(conn));
-        goto FAIL;
-    }
-    PQclear(res);
-
     res = PQexec(conn, (char*) m_bstring_view(stmt, 0, bstring_size(stmt)));
     if (PQresultStatus(res) == PGRES_FATAL_ERROR)
     {
-        c_log_error("db_exec_script exec stmt fatal error", PQerrorMessage(conn));
+        c_log_error(LOG_TAG, "%s", PQerrorMessage(conn));
         goto FAIL;
     }
 

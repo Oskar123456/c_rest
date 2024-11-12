@@ -47,7 +47,7 @@ static int   global_log_level;
 
 void c_log_init(FILE *out, LOG_LEVEL log_level) { output_file = out; global_log_level = log_level; }
 
-void c_log(const char* tag, LOG_LEVEL level, const char* message, va_list args)
+void c_log(const char* tag, int line, LOG_LEVEL level, const char* message, va_list args)
 {
     if (level < global_log_level)
         return;
@@ -70,50 +70,64 @@ void c_log(const char* tag, LOG_LEVEL level, const char* message, va_list args)
     strftime(buffer, 26, "%H:%M:%S", tm_info);
     fprintf(output_file, "%s", ansi_color_arr[level]);
     fprintf(output_file, "[%s]%*s[%s.%03d] ", log_level_translations[level],
-            max(7 - strlen(log_level_translations[level]), 0) + 1, " ", buffer, millisec);
-    fprintf(output_file, "[%s]: ", tag);
+            (int) max(7 - strlen(log_level_translations[level]), 0) + 1, " ", buffer, millisec);
+    if (line >= 0)
+        fprintf(output_file, "[%s:%d]: ", tag, line);
+    else
+        fprintf(output_file, "[%s]: ", tag);
     fprintf(output_file, "%s", ansi_color_arr[0]);
     vfprintf(output_file, message, args);
     fprintf(output_file, "\n");
     fflush(output_file);
 }
 
-void c_log_debug(const char* tag, const char* message, ...)
+void c_log_debug(const char* tag, int line, const char* message, ...)
 {
     va_list args;
     va_start(args, message);
-    c_log(tag, LOG_LEVEL_DEBUG, message, args);
+    c_log(tag, line, LOG_LEVEL_DEBUG, message, args);
     va_end(args);
 }
 
-void c_log_info(const char* tag, const char* message, ...)
+void c_log_info(const char* tag, int line, const char* message, ...)
 {
     va_list args;
     va_start(args, message);
-    c_log(tag, LOG_LEVEL_INFO, message, args);
+    c_log(tag, line, LOG_LEVEL_INFO, message, args);
     va_end(args);
 }
 
-void c_log_warn(const char* tag, const char* message, ...)
+void c_log_warn(const char* tag, int line, const char* message, ...)
 {
     va_list args;
     va_start(args, message);
-    c_log(tag, LOG_LEVEL_WARNING, message, args);
+    c_log(tag, line, LOG_LEVEL_WARNING, message, args);
     va_end(args);
 }
 
-void c_log_error(const char* tag, const char* message, ...)
+void c_log_error(const char* tag, int line, const char* message, ...)
 {
     va_list args;
     va_start(args, message);
-    c_log(tag, LOG_LEVEL_ERROR, message, args);
+    c_log(tag, line, LOG_LEVEL_ERROR, message, args);
     va_end(args);
 }
 
-void c_log_success(const char* tag, const char* message, ...)
+void c_log_success(const char* tag, int line, const char* message, ...)
 {
     va_list args;
     va_start(args, message);
-    c_log(tag, LOG_LEVEL_SUCCESS, message, args);
+    c_log(tag, line, LOG_LEVEL_SUCCESS, message, args);
     va_end(args);
+}
+
+void c_log_timestamp(string_t dest)
+{
+    char current_time_cstr[32];
+    struct tm current_time_tm;
+    struct timespec current_time;
+    clock_gettime(CLOCK_REALTIME, &current_time);
+    gmtime_r(&current_time.tv_sec, &current_time_tm);
+    strftime(current_time_cstr, 32, "%Y-%m-%d %H:%M:%S %Z", &current_time_tm);
+    string_init_set_str(dest, current_time_cstr);
 }

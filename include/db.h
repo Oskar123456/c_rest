@@ -15,3 +15,4 @@
 PGconn* db_connect();
 void db_print_table(PGconn* conn, const char* table);
 bool db_exec_script(PGconn* conn, const char* path);
+bool db_print_schema_stats(PGconn* conn);
