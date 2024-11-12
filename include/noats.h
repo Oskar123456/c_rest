@@ -7,6 +7,9 @@ Description:        noats is a notes-taking and
 License:            MIT
 *****************************************************/
 
+#ifndef NOATS_H
+#define NOATS_H
+
 #include "incl.h"
 #include "c_log.h"
 #include <postgresql/libpq-fe.h>
@@ -39,19 +42,21 @@ struct Project {
 /* Noat */
 
 /* convenience */
-void NoatNew(Noat* noat);
+void noatNew(Noat* noat);
 /* utility */
 /* CRUD */
-bool NoatCreate(PGconn* conn, Noat* noat);
-bool NoatUpdate(PGconn* conn, Noat* noat);
-bool NoatDelete(PGconn* conn, i64   id);
+bool noatCreate(PGconn* conn, Noat* noat);
+bool noatUpdate(PGconn* conn, Noat* noat);
+bool noatDelete(PGconn* conn, i64   id);
 
 /* Project */
 
 /* convenience */
-void ProjectNew(Project* noat);
+void projectNew(Project* noat);
 /* utility */
 /* CRUD */
-bool ProjectCreate(PGconn* conn, Project* noat);
-bool ProjectUpdate(PGconn* conn, Project* noat);
-bool ProjectDelete(PGconn* conn, i64   id);
+bool projectCreate(PGconn* conn, Project* noat);
+bool projectUpdate(PGconn* conn, Project* noat);
+bool projectDelete(PGconn* conn, i64   id);
+
+#endif

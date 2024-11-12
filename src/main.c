@@ -1,4 +1,3 @@
-#include "../include/mongoose.h"
 #include "../include/incl.h"
 #include "../include/serv.h"
 #include "../include/db.h"
@@ -6,6 +5,7 @@
 #include "../include/scrape.h"
 #include "../include/task.h"
 #include "../include/util.h"
+#include "../include/noats.h"
 #include "../include/cJSON.h"
 
 /* -----------------------
@@ -33,17 +33,24 @@ int main(int argc, char *argv[])
     //task_create(db_connection, my_task);
     //task_get_by_id(db_connection, my_task, 1);
 
+    Noat noat;
+    noat.title  = sdscatprintf(sdsempty(), "lol %d", rand() % 256);
+    noat.author = sdscatprintf(sdsempty(), "lol %d", rand() % 256);
+    noat.fmt    = sdscatprintf(sdsempty(), "lol %d", rand() % 256);
+    noat.note   = sdscatprintf(sdsempty(), "lol %d", rand() % 256);
+    noat.body   = sdscatprintf(sdsempty(), "lol %d", rand() % 256);
+    noatCreate(db_connection, &noat);
 
-    sds json_sds = sdsfread(sdsempty(), "resources/json/lol.json");
-    printf("%s\n", json_sds);
+    //sds json_sds = sdsfread(sdsempty(), "resources/json/lol.json");
+    //printf("%s\n", json_sds);
 
-    cJSON *json = cJSON_Parse(json_sds);
+    //cJSON *json = cJSON_Parse(json_sds);
 
-    char *json_str = cJSON_Print(json);
-    printf("%s\n", json_str);
-    free(json_str);
+    //char *json_str = cJSON_Print(json);
+    //printf("%s\n", json_str);
+    //free(json_str);
 
-    cJSON_Delete(json);
+    //cJSON_Delete(json);
 
     db_print_schema_stats(db_connection);
 

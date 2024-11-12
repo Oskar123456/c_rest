@@ -1,6 +1,9 @@
-#include "../include/incl.h"
-#include "../include/weather_report.h"
-#include "../include/c_log.h"
+#ifndef SCRAPE_H
+#define SCRAPE_H
+
+#include "incl.h"
+#include "weather_report.h"
+#include "c_log.h"
 #include "../external/mlib/m-tuple.h"
 #include "../external/mlib/m-array.h"
 #include "../external/mlib/m-serial-json.h"
@@ -22,4 +25,5 @@ void get_packinglist(const char* category);
 weather_report_t* get_weather(const char* city);
 bool get_weather_str(bstring_t dest, const char* city);
 
+#endif
 

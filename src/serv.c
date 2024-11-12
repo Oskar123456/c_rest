@@ -1,7 +1,4 @@
-#include "../include/mongoose.h"
 #include "../include/serv.h"
-#include "../include/c_log.h"
-#include "../include/scrape.h"
 
 /*
  * -----------------------
@@ -39,8 +36,7 @@ void ev_handler(struct mg_connection *c, int ev, void *ev_data)
                 }
             }
 
-            c_log_info(__FILE__, "[l:%d] %.*s %.*s", __LINE__,
-                    hm->uri.len, hm->uri.buf, hm->query.len, hm->query.buf);
+            c_log_info(LOG_TAG, "%.*s %.*s", hm->uri.len, hm->uri.buf, hm->query.len, hm->query.buf);
 
             bstring_push_back(weather_report_json, 0);
             if (bstring_size(weather_report_json) > 1)
@@ -69,7 +65,7 @@ int serve(int argc, char **argv)
 
     mg_http_listen(&mgr, s_http_addr, ev_handler, NULL);
 
-    c_log_info(__FILE__, "listening on (http) %s", s_http_addr);
+    c_log_info(LOG_TAG, "listening on (http) %s", s_http_addr);
 
     for (;;)
         mg_mgr_poll(&mgr, 1000);

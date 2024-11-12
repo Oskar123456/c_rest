@@ -1,4 +1,7 @@
 #include "incl.h"
+#include "c_log.h"
+#include "scrape.h"
+#include "mongoose.h"
 
 /*
  * -----------------------

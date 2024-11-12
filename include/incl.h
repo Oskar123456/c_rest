@@ -5,8 +5,8 @@
  * cph-oh82@cphbusiness.dk
  * 2024-11-12.............
  * ----------------------- */
-#ifndef OBHNOTHING_INCLUDES_H
-#define OBHNOTHING_INCLUDES_H
+#ifndef INCLS_H
+#define INCLS_H
 /* defaults */
 #include <math.h>
 #include <time.h>

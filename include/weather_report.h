@@ -1,3 +1,6 @@
+#ifndef WEATHER_REPORT_H
+#define WEATHER_REPORT_H
+
 #include "../include/incl.h"
 #include "../external/mlib/m-tuple.h"
 #include "../external/mlib/m-array.h"
@@ -71,3 +74,4 @@ TUPLE_DEF2(weather_report,
         (current,            weather_info_t))
 #define M_OPL_weather_report_t() TUPLE_OPLIST(weather_report, \
         M_OPL_weather_info_t(),  M_OPL_location_info_t())
+#endif

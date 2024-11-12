@@ -1,5 +1,4 @@
 #include "../include/scrape.h"
-#include <curl/curl.h>
 
 /*
  * -----------------------
