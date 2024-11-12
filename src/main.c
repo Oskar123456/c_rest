@@ -5,9 +5,8 @@
 #include "../include/c_log.h"
 #include "../include/scrape.h"
 #include "../include/task.h"
-
-#include <endian.h>
-#include <postgresql/libpq-fe.h>
+#include "../include/util.h"
+#include "../include/cJSON.h"
 
 /*
  * -----------------------
@@ -21,6 +20,7 @@
 
 int main(int argc, char *argv[])
 {
+    srand(time(NULL));
     int exit_code = EXIT_SUCCESS;
     /* initialization */
     c_log_init(stderr, LOG_LEVEL_SUCCESS);
@@ -33,8 +33,19 @@ int main(int argc, char *argv[])
     task_t my_task;
     task_new(my_task, "dont be an idiot", "Oskar", "impossible", rand() % 32);
     task_create(db_connection, my_task);
-    bool res = task_get_by_id(db_connection, my_task, 1);
+    task_get_by_id(db_connection, my_task, 1);
 
+
+    sds json_sds = sdsfread(sdsempty(), "resources/json/lol.json");
+    printf("%s\n", json_sds);
+
+    cJSON *json = cJSON_Parse(json_sds);
+
+    char *json_str = cJSON_Print(json);
+    printf("%s\n", json_str);
+    free(json_str);
+
+    cJSON_Delete(json);
 
     db_print_schema_stats(db_connection);
 

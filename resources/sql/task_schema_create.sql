@@ -57,20 +57,63 @@ CREATE TABLE IF NOT EXISTS public.task_project_assoc (
     FOREIGN KEY (project_id) REFERENCES public.project (id)
 );
 
-CREATE OR REPLACE FUNCTION update_modified_column() /* auto-timestamp */
+/**************************************************************************************************
+ Functions
+ --------------------------------------------------------------------------------------------------
+ public.update_timestamp      <description>
+ public.created_timestamp     <description>
+ **************************************************************************************************/
+
+CREATE OR REPLACE FUNCTION public.update_timestamp()
 RETURNS TRIGGER AS $$
 BEGIN
    IF row(NEW.*) IS DISTINCT FROM row(OLD.*) THEN
-      NEW.modified = now();
+      NEW.updated = now();
       RETURN NEW;
    ELSE
       RETURN OLD;
    END IF;
 END;
+$$ language 'plpgsql';
 
-CREATE TRIGGER
+CREATE OR REPLACE FUNCTION public.created_timestamp()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.created := now();
+  NEW.updated := now();
+  RETURN NEW;
+END;
+$$ LANGUAGE 'plpgsql';
+
+/**************************************************************************************************
+ Triggers
+ --------------------------------------------------------------------------------------------------
+ **************************************************************************************************/
+
+CREATE OR REPLACE TRIGGER
+    create_task_timestamp
+BEFORE INSERT ON
+    public.task
+FOR EACH ROW EXECUTE PROCEDURE
+    public.created_timestamp();
+
+CREATE OR REPLACE TRIGGER
+    create_project_timestamp
+BEFORE INSERT ON
+    public.project
+FOR EACH ROW EXECUTE PROCEDURE
+    public.created_timestamp();
+
+CREATE OR REPLACE TRIGGER
     update_task_timestamp
 BEFORE UPDATE ON
-    task
+    public.task
 FOR EACH ROW EXECUTE PROCEDURE
-    update_modified_column();
+    public.update_modified_column();
+
+CREATE OR REPLACE TRIGGER
+    update_project_timestamp
+BEFORE UPDATE ON
+    public.project
+FOR EACH ROW EXECUTE PROCEDURE
+    public.update_modified_column();

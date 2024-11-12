@@ -1,13 +1,13 @@
-////////////////////////////////////////////////
-// useful includes & typedefs for a c project //
-////////////////////////////////////////////////
-
+/* -----------------------
+ * includes in one place..
+ * ***********************
+ * Oskar Bahner Hansen....
+ * cph-oh82@cphbusiness.dk
+ * 2024-11-12.............
+ * ----------------------- */
 #ifndef OBHNOTHING_INCLUDES_H
 #define OBHNOTHING_INCLUDES_H
-
-/*
- * defaults
- * */
+/* defaults */
 #include <math.h>
 #include <time.h>
 #include <sys/time.h>
@@ -23,10 +23,7 @@
 #include <stdarg.h>
 #include <wchar.h>
 #include <errno.h>
-/*
- * linux
- * */
-//#if defined(__UNIX__) || defined(__LINUX__)
+/* linux */
 #if defined(__UNIX__) || defined(__LINUX__)
 #include <signal.h>
 #include <sys/stat.h>
@@ -34,19 +31,14 @@
 #include <sys/types.h>
 #include <sys/time.h>
 #include <unistd.h>
-//#endif
 #endif
-
-/*
- * external
- * */
-
+/* strings */
+#include "sds.h"
+#include "cJSON.h"
 #include "../external/mlib/m-string.h"
 #include "../external/mlib/m-bstring.h"
-
-/*
- * defines
- * */
+/* own */
+/* typedefs, macros, defs */
 typedef  uint8_t  u8;
 typedef  uint16_t u16;
 typedef  uint32_t u32;
